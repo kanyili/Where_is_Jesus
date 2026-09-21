@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Where's Jesus? 耶穌在哪?</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @keyframes float-up {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            70% { transform: translateY(-30px) scale(1.1); opacity: 1; /* 前 70% 的時間完全不透明且停留在畫面上 */ }
+            100% { transform: translateY(-60px) scale(1.2); opacity: 0; /* 最後 30% 的時間才慢慢淡出 */ }
+        }
+        .float-text {
+            animation: float-up 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; /* 總動畫時間維持 2.5 秒 */
+            pointer-events: none;
+        }
+        .canvas-container {
+            cursor: crosshair;
+            touch-action: none;
+        }
+        #orientation-warning {
+            display: none;
+        }
+        @media screen and (max-width: 900px) and (orientation: portrait) {
+            #orientation-warning {
+                display: flex !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-between p-3 select-none overflow-x-hidden">
+
+    <!-- 手機直向警告遮罩 -->
+    <div id="orientation-warning" class="fixed inset-0 bg-slate-950/95 z-50 flex-col items-center justify-center p-6 text-center space-y-4">
+        <div class="text-6xl animate-bounce">📱🔄</div>
+        <h2 class="text-2xl font-bold text-rose-500">請將手機轉為橫向遊玩</h2>
+        <p class="text-slate-300 text-sm">為了最佳的遊戲體驗，請將您的手機調整為橫向模式！</p>
+    </div>
+
+    <!-- 頂部導覽列 -->
+    <header class="w-full max-w-6xl flex flex-wrap justify-between items-center bg-slate-900/90 backdrop-blur-md px-5 py-3 rounded-2xl shadow-lg border border-slate-800">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl">✝️</span>
+            <div>
+                <h1 class="text-lg md:text-xl font-bold tracking-wide text-rose-500">Where's Jesus? 耶穌在哪?</h1>
+                <p id="level-desc" class="text-xs text-slate-400">在茫茫人海中，找出耶穌！</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3 text-sm font-medium">
+            <div class="bg-slate-800 px-3 py-1 rounded-xl border border-slate-700">
+                關卡: <span id="level-display" class="text-rose-500 font-bold">1</span>
+            </div>
+            <div class="bg-slate-800 px-3 py-1 rounded-xl border border-slate-700">
+                時間: <span id="timer-display" class="text-cyan-400 font-bold">00:00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主遊戲區 (左寬右窄) -->
+    <main class="w-full max-w-6xl flex flex-row gap-4 my-3 items-center justify-center relative">
+        
+        <!-- 左側：超寬遊戲主畫面 -->
+        <div class="relative bg-amber-50/10 p-2.5 rounded-2xl shadow-2xl border-4 border-slate-800 canvas-container overflow-hidden">
+            <canvas id="canvas-game" width="920" height="420" class="rounded-lg block bg-amber-100"></canvas>
+        </div>
+
+        <!-- 右側：較窄的目標與控制側邊欄 -->
+        <div class="flex flex-col items-center justify-center bg-slate-900/90 p-4 rounded-2xl shadow-xl border border-slate-800 w-44 text-center space-y-3 shrink-0">
+            <div class="text-xs text-slate-400 font-medium">本關尋找目標</div>
+            <div class="bg-slate-950 p-2 rounded-xl border border-slate-700 shadow-inner">
+                <canvas id="canvas-target" width="75" height="75" class="rounded-lg block mx-auto"></canvas>
+            </div>
+            <div>
+                <div class="text-sm font-bold text-rose-400">耶穌 (Jesus)</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">穿白袍、斜披紅帶[cite: 3]</div>
+            </div>
+            <button id="btn-hint" onclick="game.showHint()" class="w-full bg-rose-600 hover:bg-rose-500 text-white py-2 rounded-xl font-medium shadow transition active:scale-95 cursor-pointer text-xs">
+                💡 顯示提示閃爍
+            </button>
+        </div>
+
+        <!-- 浮動特效容器 -->
+        <div id="float-container" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
+    </main>
+
+    <!-- 底部控制列 -->
+    <footer class="w-full max-w-6xl flex justify-between items-center bg-slate-900/90 backdrop-blur-md px-5 py-3 rounded-2xl shadow-lg border border-slate-800">
+        <button onclick="game.toggleSound()" id="btn-sound" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-xl font-medium shadow transition active:scale-95 cursor-pointer text-xs">
+            🔊 音效: 開
+        </button>
+        <div class="text-slate-300 text-xs hidden md:block">
+            提示：1000人極限挑戰！點錯或點對皆有醒目紅色主體特效，支援滑鼠與觸控[cite: 3]。
+        </div>
+        <button onclick="game.restartLevel()" class="bg-cyan-700 hover:bg-cyan-600 text-white px-3 py-1.5 rounded-xl font-medium shadow transition active:scale-95 cursor-pointer text-xs">
+            🔄 開啟新局
+        </button>
+    </footer>
+
+    <!-- 結算彈窗 -->
+    <div id="modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-slate-900 text-slate-100 border-2 border-slate-700 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl space-y-6">
+            <div class="text-6xl animate-bounce">🎉</div>
+            <h2 class="text-2xl font-bold text-rose-500">太神啦！成功找到耶穌！</h2>
+            <p id="modal-time" class="text-slate-300 text-sm">你花費了 00:30 找到他！</p>
+            <button onclick="game.nextLevel()" class="w-full bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white font-bold py-3 rounded-xl shadow-lg transition active:scale-95 cursor-pointer">
+                挑戰下一張圖
+            </button>
+        </div>
+    </div>
+
+    <!-- 遊戲核心邏輯 -->
+    <script>
+        class JesusSearchGame {
+            constructor() {
+                this.canvasGame = document.getElementById('canvas-game');
+                this.ctxGame = this.canvasGame.getContext('2d');
+                this.canvasTarget = document.getElementById('canvas-target');
+                this.ctxTarget = this.canvasTarget.getContext('2d');
+
+                this.level = 1;
+                this.timerInterval = null;
+                this.seconds = 0;
+                this.soundEnabled = true;
+                this.isLocked = false;
+
+                this.jesusPos = { x: 0, y: 0, radius: 14 };
+                this.crowd = [];
+
+                this.initEvents();
+                this.startLevel();
+            }
+
+            initEvents() {
+                const handleInput = (clientX, clientY) => {
+                    if (this.isLocked) return;
+                    const rect = this.canvasGame.getBoundingClientRect();
+                    const scaleX = this.canvasGame.width / rect.width;
+                    const scaleY = this.canvasGame.height / rect.height;
+                    const x = (clientX - rect.left) * scaleX;
+                    const y = (clientY - rect.top) * scaleY;
+                    this.handleClick(x, y);
+                };
+
+                this.canvasGame.addEventListener('click', (e) => {
+                    handleInput(e.clientX, e.clientY);
+                });
+
+                this.canvasGame.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (e.touches.length > 0) {
+                        const touch = e.touches[0];
+                        handleInput(touch.clientX, touch.clientY);
+                    }
+                }, { passive: false });
+            }
+
+            startLevel() {
+                this.isLocked = false;
+                this.seconds = 0;
+                document.getElementById('level-display').innerText = this.level;
+                
+                this.generateDenseCrowd();
+                this.drawScene();
+                this.drawTargetPreview();
+                this.startTimer();
+            }
+
+            generateDenseCrowd() {
+                this.crowd = [];
+                
+                this.jesusPos = {
+                    x: 40 + Math.random() * 840,
+                    y: 45 + Math.random() * 330, // 確保 y 座標預留上方空間給提示詞
+                    radius: 14
+                };
+
+                const shirtColors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#e11d48', '#7c3aed'];
+                const hairColors = ['#451a03', '#1e293b', '#b45309', '#78350f'];
+
+                for (let i = 0; i < 1000; i++) {
+                    let cx = 20 + Math.random() * 880;
+                    let cy = 20 + Math.random() * 380;
+                    
+                    if (Math.hypot(cx - this.jesusPos.x, cy - this.jesusPos.y) < 18) continue;
+
+                    this.crowd.push({
+                        x: cx,
+                        y: cy,
+                        type: Math.random() > 0.12 ? 'person' : 'object',
+                        shirtColor: shirtColors[Math.floor(Math.random() * shirtColors.length)],
+                        hairColor: hairColors[Math.floor(Math.random() * hairColors.length)],
+                        variant: Math.floor(Math.random() * 3)
+                    });
+                }
+            }
+
+            drawScene() {
+                this.ctxGame.fillStyle = "#bef264";
+                this.ctxGame.fillRect(0, 0, 920, 420);
+
+                this.ctxGame.fillStyle = "#fef08a";
+                this.ctxGame.beginPath();
+                this.ctxGame.moveTo(0, 140);
+                this.ctxGame.bezierCurveTo(350, 40, 650, 320, 920, 180);
+                this.ctxGame.lineTo(920, 280);
+                this.ctxGame.bezierCurveTo(650, 420, 350, 140, 0, 260);
+                this.ctxGame.closePath();
+                this.ctxGame.fill();
+
+                this.crowd.forEach(item => {
+                    if (item.type === 'person') {
+                        this.drawTinyPerson(this.ctxGame, item.x, item.y, item.shirtColor, item.hairColor);
+                    } else {
+                        this.drawTinyObject(this.ctxGame, item.x, item.y);
+                    }
+                });
+
+                this.drawJesus(this.ctxGame, this.jesusPos.x, this.jesusPos.y);
+            }
+
+            drawTargetPreview() {
+                this.ctxTarget.clearRect(0, 0, 75, 75);
+                this.ctxTarget.fillStyle = "#1e293b";
+                this.ctxTarget.fillRect(0, 0, 75, 75);
+                this.drawJesus(this.ctxTarget, 37.5, 40, 1.2);
+            }
+
+            drawTinyPerson(ctx, x, y, shirtColor, hairColor) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.strokeStyle = "#0f172a";
+                ctx.lineWidth = 1.0;
+
+                ctx.fillStyle = hairColor;
+                ctx.beginPath();
+                ctx.arc(0, -7, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = "#fed7aa";
+                ctx.beginPath();
+                ctx.arc(0, -6, 3.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = shirtColor;
+                ctx.fillRect(-4.5, -2, 9, 11);
+                ctx.strokeRect(-4.5, -2, 9, 11);
+
+                ctx.restore();
+            }
+
+            drawTinyObject(ctx, x, y) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.fillStyle = "#047857";
+                ctx.strokeStyle = "#0f172a";
+                ctx.lineWidth = 1.0;
+                ctx.beginPath();
+                ctx.arc(0, 0, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            drawJesus(ctx, x, y, scale = 0.85) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.scale(scale, scale);
+                ctx.strokeStyle = "#0f172a";
+                ctx.lineWidth = 1.1;
+
+                ctx.fillStyle = "#451a03";
+                ctx.beginPath();
+                ctx.arc(0, -7, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = "#fed7aa";
+                ctx.beginPath();
+                ctx.arc(0, -6, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = "#451a03";
+                ctx.fillRect(-1.5, -4.5, 3, 2.5);
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(-4.5, -2, 9, 14);
+                ctx.strokeRect(-4.5, -2, 9, 14);
+
+                ctx.fillStyle = "#dc2626";
+                ctx.beginPath();
+                ctx.moveTo(-4.5, -2);
+                ctx.lineTo(-1.5, -2);
+                ctx.lineTo(4.5, 9.5);
+                ctx.lineTo(1.5, 9.5);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = "#78350f";
+                ctx.fillRect(-4.5, 4, 9, 2.2);
+                ctx.strokeRect(-4.5, 4, 9, 2.2);
+
+                ctx.restore();
+            }
+
+            handleClick(x, y) {
+                const dist = Math.hypot(x - this.jesusPos.x, y - this.jesusPos.y);
+                if (dist <= 22) {
+                    this.isLocked = true;
+                    this.drawSuccessMarker(this.ctxGame, this.jesusPos.x, this.jesusPos.y);
+                    // 猜對時：將提示詞位置往上偏移 45px，避免擋住耶穌
+                    this.showFloatText(this.jesusPos.x, this.jesusPos.y - 45, "✨ 找到了！太厲害啦！✨", true);
+                    this.playSound('success');
+                    clearInterval(this.timerInterval);
+                    
+                    setTimeout(() => {
+                        this.endLevel();
+                    }, 1500);
+                } else {
+                    this.drawWrongMarker(this.ctxGame, x, y);
+                    // 猜錯時：維持點擊的位置
+                    this.showFloatText(x, y, "❌ 不是唷", false);
+                    this.playSound('wrong');
+                }
+            }
+
+            drawSuccessMarker(ctx, x, y) {
+                ctx.save();
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.arc(x, y, 28, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#fee2e2';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(x, y, 34, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            drawWrongMarker(ctx, x, y) {
+                ctx.save();
+                ctx.strokeStyle = '#dc2626';
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.arc(x, y, 16, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            showHint() {
+                this.drawSuccessMarker(this.ctxGame, this.jesusPos.x, this.jesusPos.y);
+                setTimeout(() => this.drawScene(), 2000);
+                // 提示按鈕點擊時：將提示詞位置往上偏移 45px，避免擋住耶穌
+                this.showFloatText(this.jesusPos.x, this.jesusPos.y - 45, "💡 提示：耶穌在這裡！", true);
+            }
+
+            showFloatText(x, y, text, isSuccess) {
+                const container = document.getElementById('float-container');
+                const el = document.createElement('div');
+                
+                el.className = `absolute font-extrabold float-text ${
+                    isSuccess 
+                        ? 'text-red-600 text-base md:text-xl drop-shadow-[0_2px_8px_rgba(255,255,255,0.9)] bg-white/95 px-4 py-2 rounded-2xl border-3 border-red-600 shadow-2xl -translate-x-1/2 -translate-y-1/2' 
+                        : 'text-red-600 text-sm md:text-base drop-shadow-[0_2px_8px_rgba(255,255,255,0.9)] bg-white/95 px-3.5 py-1.5 rounded-xl border-2 border-red-600 shadow-lg -translate-x-1/2 -translate-y-1/2'
+                }`;
+                
+                // 讓定位點完美對齊座標中心
+                el.style.left = `${Math.min(Math.max(x, 80), window.innerWidth - 120)}px`;
+                el.style.top = `${Math.max(y, 30)}px`;
+                el.innerText = text;
+                container.appendChild(el);
+                
+                setTimeout(() => el.remove(), 2500);
+            }
+
+            startTimer() {
+                clearInterval(this.timerInterval);
+                this.timerInterval = setInterval(() => {
+                    this.seconds++;
+                    const m = String(Math.floor(this.seconds / 60)).padStart(2, '0');
+                    const s = String(this.seconds % 60).padStart(2, '0');
+                    document.getElementById('timer-display').innerText = `${m}:${s}`;
+                }, 1000);
+            }
+
+            endLevel() {
+                const m = String(Math.floor(this.seconds / 60)).padStart(2, '0');
+                const s = String(this.seconds % 60).padStart(2, '0');
+                document.getElementById('modal-time').innerText = `你在 1000 人的茫茫人海中，花費了 ${m}:${s} 找到耶穌！`;
+                document.getElementById('modal').classList.remove('hidden');
+                document.getElementById('modal').classList.add('flex');
+            }
+
+            nextLevel() {
+                document.getElementById('modal').classList.remove('flex');
+                document.getElementById('modal').classList.add('hidden');
+                this.level++;
+                this.startLevel();
+            }
+
+            restartLevel() {
+                this.startLevel();
+            }
+
+            toggleSound() {
+                this.soundEnabled = !this.soundEnabled;
+                document.getElementById('btn-sound').innerText = `🔊 音效: ${this.soundEnabled ? '開' : '關'}`;
+            }
+
+            playSound(type) {
+                if (!this.soundEnabled) return;
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'success') {
+                    const now = ctx.currentTime;
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    osc.frequency.setValueAtTime(783.99, now + 0.2);
+                    osc.frequency.setValueAtTime(1046.50, now + 0.3);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                    osc.start(now);
+                    osc.stop(now + 0.6);
+                } else {
+                    osc.frequency.setValueAtTime(180, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.18);
+                }
+            }
+        }
+
+        const game = new JesusSearchGame();
+    </script>
+</body>
+</html>
