@@ -418,7 +418,7 @@ generateDenseCrowd() {
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.strokeStyle = "#292524";
-                ctx.lineWidth = 1.0;
+                ctx.lineWidth = 0.4;
 
                 ctx.fillStyle = hairColor;
                 ctx.beginPath();
@@ -444,7 +444,7 @@ generateDenseCrowd() {
                 ctx.translate(x, y);
                 ctx.fillStyle = this.currentTheme.treeColor;
                 ctx.strokeStyle = "#292524";
-                ctx.lineWidth = 1.0;
+                ctx.lineWidth = 0.4;
                 ctx.beginPath();
                 ctx.arc(0, 0, 5, 0, Math.PI * 2);
                 ctx.fill();
