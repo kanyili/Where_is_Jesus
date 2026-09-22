@@ -19,11 +19,13 @@
                 display: flex !important;
             }
         }
-        /* 手機端排版：資訊列在上方，遊戲畫面完整顯示在下方 */
+        /* 手機端排版：針對橫向短螢幕優化，確保畫面完全塞入視窗內 */
         @media screen and (max-width: 900px) {
             body {
-                padding: 4px !important;
+                padding: 2px !important;
                 background-color: #fef3c7 !important;
+                height: 100vh !important;
+                overflow: hidden !important;
             }
             .pc-header, .pc-sidebar {
                 display: none !important;
@@ -41,43 +43,44 @@
                 justify-content: center !important;
             }
             #canvas-game {
-                width: 100% !important;
+                width: auto !important;
                 height: auto !important;
-                max-height: 72vh !important;
+                max-width: 98vw !important;
+                max-height: 56vh !important;
                 object-fit: contain !important;
-                border-radius: 12px !important;
+                border-radius: 8px !important;
             }
-            /* 手機橫向彈窗極致緊湊與自適應捲動優化，確保按鈕完整呈現 */
+            /* 手機橫向彈窗極致緊湊與自適應捲動優化 */
             #modal > div, #mobile-intro-modal > div {
-                padding: 0.75rem 1rem !important;
-                max-width: 85vw !important;
+                padding: 0.5rem 0.75rem !important;
+                max-width: 80vw !important;
                 max-height: 90vh !important;
                 overflow-y: auto !important;
-                gap: 0.25rem !important;
+                gap: 0.15rem !important;
             }
             #mobile-intro-modal h2, #modal h2 {
-                font-size: 1.05rem !important;
+                font-size: 1rem !important;
                 margin: 0 !important;
             }
             #mobile-intro-modal .text-3xl, #modal-icon {
-                font-size: 1.35rem !important;
+                font-size: 1.2rem !important;
                 margin-bottom: -0.1rem !important;
             }
             #mobile-intro-modal .bg-amber-50 {
-                padding: 0.25rem !important;
+                padding: 0.15rem !important;
             }
             #mobile-intro-modal .text-base, #modal p {
-                font-size: 0.85rem !important;
-                margin: 0.1rem 0 !important;
+                font-size: 0.8rem !important;
+                margin: 0.05rem 0 !important;
             }
             #mobile-intro-modal .text-xs {
-                font-size: 0.65rem !important;
+                font-size: 0.6rem !important;
             }
             #mobile-intro-modal button, #modal button {
-                padding-top: 0.45rem !important;
-                padding-bottom: 0.45rem !important;
-                font-size: 0.8rem !important;
-                margin-top: 0.2rem !important;
+                padding-top: 0.35rem !important;
+                padding-bottom: 0.35rem !important;
+                font-size: 0.75rem !important;
+                margin-top: 0.1rem !important;
             }
         }
     </style>
@@ -101,7 +104,7 @@
             </div>
             <div>
                 <div class="text-base font-bold text-amber-900">耶穌 (Jesus)</div>
-                <div class="text-xs text-stone-500 mt-0.5">穿白袍、斜披紅帶</div>
+                <div class="text-xs text-stone-500 mt-0.5">穿白袍、斜披紅帶、咖啡色頭髮</div>
             </div>
             <button onclick="game.startMobileGame()" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-2 rounded-xl shadow-lg transition active:scale-95 cursor-pointer text-sm mt-1">
                 開始尋找！
@@ -115,7 +118,7 @@
             <span class="text-2xl">✝️</span>
             <div>
                 <h1 class="text-lg font-bold tracking-wide text-amber-800">Where's Jesus? 耶穌在哪?</h1>
-                <p id="level-desc" class="text-xs text-stone-500">挑戰在茫茫人海中，找出耶穌！</p>
+                <p id="level-desc" class="text-xs text-stone-500">在溫馨的茫茫人海中，找出耶穌！</p>
             </div>
         </div>
         <div class="flex items-center space-x-4 text-sm font-medium">
@@ -129,17 +132,17 @@
     </header>
 
     <!-- 手機版專屬上方資訊與控制列 -->
-    <div class="hidden max-[900px]:flex w-full max-w-[95vw] items-center justify-between bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-md border border-amber-200 shrink-0 mb-1">
-        <div class="flex items-center space-x-2 text-xs font-medium text-stone-700">
-            <span id="mobile-level-desc" class="font-bold text-amber-800 truncate max-w-[140px]">草原</span>
+    <div class="hidden max-[900px]:flex w-full max-w-[98vw] items-center justify-between bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg shadow-sm border border-amber-200 shrink-0 my-0.5">
+        <div class="flex items-center space-x-1.5 text-xs font-medium text-stone-700">
+            <span id="mobile-level-desc" class="font-bold text-amber-800 truncate max-w-[120px]">春意草原</span>
             <span class="text-stone-400">|</span>
             <span>時間: <span id="mobile-timer-display" class="text-emerald-700 font-bold">00:00</span></span>
         </div>
-        <div class="flex items-center space-x-1.5">
-            <button onclick="game.restartLevel()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-medium text-xs active:scale-95 cursor-pointer shadow">
+        <div class="flex items-center space-x-1">
+            <button onclick="game.restartLevel()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-0.5 rounded font-medium text-xs active:scale-95 cursor-pointer shadow">
                 🔄 新局
             </button>
-            <button onclick="game.showHint()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1 rounded-lg font-medium text-xs active:scale-95 cursor-pointer shadow">
+            <button onclick="game.showHint()" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-0.5 rounded font-medium text-xs active:scale-95 cursor-pointer shadow">
                 💡 提示
             </button>
         </div>
@@ -149,13 +152,13 @@
     <main class="w-full max-w-7xl flex flex-row gap-4 items-center justify-center relative my-auto shrink mobile-game-container">
         
         <!-- 遊戲主畫面 -->
-        <div class="relative bg-white/60 p-2 rounded-2xl shadow-xl border-2 border-amber-200 canvas-container">
-            <canvas id="canvas-game" width="1300" height="540" class="rounded-xl block bg-amber-50/85 w-auto h-auto object-contain"></canvas>
+        <div class="relative bg-white/60 p-1.5 rounded-xl shadow-md border-2 border-amber-200 canvas-container">
+            <canvas id="canvas-game" width="1300" height="540" class="rounded-lg block bg-amber-50/85 w-auto h-auto object-contain"></canvas>
         </div>
 
         <!-- 右側：目標與控制側邊欄 (PC端顯示) -->
         <div class="pc-sidebar flex flex-col items-center justify-center bg-white/80 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-amber-200/60 w-36 text-center space-y-3 shrink-0">
-            <div class="text-xs text-stone-500 font-medium">目標人物</div>
+            <div class="text-xs text-stone-500 font-medium">本關尋找目標</div>
             <div class="bg-amber-50 p-2 rounded-xl border border-amber-200 shadow-inner">
                 <canvas id="canvas-target" width="65" height="65" class="rounded-lg block mx-auto"></canvas>
             </div>
@@ -174,9 +177,9 @@
         <div class="bg-white text-stone-800 border-2 border-amber-200 rounded-3xl p-6 max-w-md w-full text-center shadow-2xl flex flex-col items-center justify-center">
             <div id="modal-icon" class="text-5xl animate-bounce">🎉</div>
             <h2 id="modal-title" class="text-xl font-bold text-amber-700">太神啦！成功找到耶穌！</h2>
-            <p id="modal-time" class="text-stone-600 text-sm font-medium my-2">只花了 00:30 就找到他！</p>
+            <p id="modal-time" class="text-stone-600 text-sm font-medium my-2">你花費了 00:30 找到他！</p>
             <button onclick="game.nextLevel()" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-2.5 rounded-xl shadow-lg transition active:scale-95 cursor-pointer text-sm mt-1">
-                再次挑戰
+                挑戰下一張圖
             </button>
         </div>
     </div>
@@ -207,7 +210,7 @@
 
                 this.themes = [
                     {
-                        name: "草原",
+                        name: "春意草原",
                         bgGround: "#d9f99d",
                         bgRoad: "#fef9c3",
                         shirtColors: ['#38bdf8', '#34d399', '#fbbf24', '#a78bfa', '#f472b6', '#22d3ee', '#acc324', '#fb7185', '#818cf8'],
@@ -215,7 +218,7 @@
                         treeColor: '#059669'
                     },
                     {
-                        name: "麥田",
+                        name: "溫馨麥田",
                         bgGround: "#fed7aa",
                         bgRoad: "#ffedd5",
                         shirtColors: ['#2563eb', '#059669', '#dc2626', '#7c3aed', '#db2777', '#0891b2', '#65a30d'],
@@ -223,7 +226,7 @@
                         treeColor: '#b45309'
                     },
                     {
-                        name: "薰衣草",
+                        name: "柔和薰衣草",
                         bgGround: "#e9d5ff",
                         bgRoad: "#f3e8ff",
                         shirtColors: ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#6366f1', '#14b8a6'],
@@ -231,7 +234,7 @@
                         treeColor: '#7e22ce'
                     },
                     {
-                        name: "櫻花",
+                        name: "晨曦櫻花",
                         bgGround: "#fbcfe8",
                         bgRoad: "#fdf2f8",
                         shirtColors: ['#0284c7', '#16a34a', '#ca8a04', '#9333ea', '#ea580c', '#0d9488', '#4f46e5'],
@@ -561,7 +564,7 @@
                 const s = String(this.seconds % 60).padStart(2, '0');
                 const modalTime = document.getElementById('modal-time');
                 if (modalTime) {
-                    modalTime.innerText = `你在【${this.currentTheme.name}】中，只花了 ${m}:${s} 就找到耶穌！`;
+                    modalTime.innerText = `你在【${this.currentTheme.name}】關卡中，花費了 ${m}:${s} 找到耶穌！`;
                 }
                 const modal = document.getElementById('modal');
                 if (modal) {
