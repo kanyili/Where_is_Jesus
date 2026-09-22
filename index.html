@@ -56,12 +56,12 @@
                 background: transparent !important;
                 border: none !important;
             }
-            /* 讓主遊戲 Canvas 寬度完全撐滿螢幕 */
+            /* 降低手機端最大高度，避免畫面超出可視範圍而被裁切 */
             #canvas-game {
                 width: 100vw !important;
                 height: auto !important;
                 max-width: 100vw !important;
-                max-height: 80vh !important;
+                max-height: 62vh !important;
                 object-fit: contain !important;
                 border-radius: 6px !important;
             }
@@ -266,7 +266,6 @@
                 const handleInput = (clientX, clientY) => {
                     const rect = this.canvasGame.getBoundingClientRect();
                     
-                    // 考量 object-fit: contain 可能產生的上下或左右留白，精準計算實際渲染比例與偏移量
                     const displayWidth = rect.width;
                     const displayHeight = rect.height;
                     
@@ -279,11 +278,9 @@
                     let offsetY = 0;
 
                     if (currentAspect > targetAspect) {
-                        // 畫面較寬，左右有留白
                         renderWidth = displayHeight * targetAspect;
                         offsetX = (displayWidth - renderWidth) / 2;
                     } else {
-                        // 畫面較高，上下有留白
                         renderHeight = displayWidth / targetAspect;
                         offsetY = (displayHeight - renderHeight) / 2;
                     }
@@ -291,13 +288,11 @@
                     const clickX = clientX - rect.left;
                     const clickY = clientY - rect.top;
 
-                    // 檢查點擊是否在實際繪製範圍內
                     if (clickX < offsetX || clickX > offsetX + renderWidth || 
                         clickY < offsetY || clickY > offsetY + renderHeight) {
-                        return; // 點到留白區域則忽略
+                        return;
                     }
 
-                    // 轉換為 Canvas 內部實際座標 (1300x650)
                     const x = ((clickX - offsetX) / renderWidth) * this.canvasGame.width;
                     const y = ((clickY - offsetY) / renderHeight) * this.canvasGame.height;
 
