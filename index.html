@@ -98,7 +98,7 @@
         <p class="text-stone-300 text-sm">為了最佳的遊戲體驗，請將您的手機調整為橫向模式！</p>
     </div>
 
-    <!-- 手機版專屬：遊戲開始前目標提示彈窗 -->
+    <!-- 手機版專屬：遊戲開始前目標解答彈窗 -->
     <div id="mobile-intro-modal" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-2">
         <div class="bg-white text-stone-800 border-2 border-amber-200 rounded-3xl p-5 max-w-sm w-full text-center shadow-2xl flex flex-col items-center justify-center">
             <div class="text-3xl">✝️</div>
@@ -107,8 +107,8 @@
                 <canvas id="canvas-mobile-target" width="60" height="60" class="rounded-xl block mx-auto"></canvas>
             </div>
             <div>
-                <div class="text-base font-bold text-amber-900">耶穌 (Jesus)</div>
-                <div class="text-xs text-stone-500 mt-0.5">穿白袍、斜披紅帶、咖啡色頭髮</div>
+                <div class="text-base font-bold text-amber-900">耶穌</div>
+                <div class="text-xs text-stone-500 mt-0.5">穿白袍、紅色斜背帶</div>
             </div>
             <button onclick="game.startMobileGame()" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-2 rounded-xl shadow-lg transition active:scale-95 cursor-pointer text-sm mt-1">
                 開始尋找！
@@ -122,7 +122,7 @@
             <span class="text-2xl">✝️</span>
             <div>
                 <h1 class="text-lg font-bold tracking-wide text-amber-800">Where's Jesus? 耶穌在哪?</h1>
-                <p id="level-desc" class="text-xs text-stone-500">在溫馨的茫茫人海中，找出耶穌！</p>
+                <p id="level-desc" class="text-xs text-stone-500">在茫茫人海中，找出耶穌！</p>
             </div>
         </div>
         <div class="flex items-center space-x-4 text-sm font-medium">
@@ -147,7 +147,7 @@
                 🔄 新局
             </button>
             <button onclick="game.showHint()" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-0.5 rounded font-medium text-xs active:scale-95 cursor-pointer shadow">
-                💡 提示
+                💡 解答
             </button>
         </div>
     </div>
@@ -157,21 +157,21 @@
         
         <!-- 遊戲主畫面 -->
         <div class="relative bg-white/60 p-1.5 rounded-xl shadow-md border-2 border-amber-200 canvas-container">
-            <canvas id="canvas-game" width="1300" height="540" class="rounded-lg block bg-amber-50/85 w-auto h-auto object-contain"></canvas>
+            <canvas id="canvas-game" width="1300" height="650" class="rounded-lg block bg-amber-50/85 w-auto h-auto object-contain"></canvas>
         </div>
 
         <!-- 右側：目標與控制側邊欄 (PC端顯示) -->
         <div class="pc-sidebar flex flex-col items-center justify-center bg-white/80 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-amber-200/60 w-36 text-center space-y-3 shrink-0">
-            <div class="text-xs text-stone-500 font-medium">本關尋找目標</div>
+            <div class="text-xs text-stone-500 font-medium">尋找目標</div>
             <div class="bg-amber-50 p-2 rounded-xl border border-amber-200 shadow-inner">
                 <canvas id="canvas-target" width="65" height="65" class="rounded-lg block mx-auto"></canvas>
             </div>
             <div>
-                <div class="text-sm font-bold text-amber-900">耶穌 (Jesus)</div>
+                <div class="text-sm font-bold text-amber-900">耶穌</div>
                 <div class="text-xs text-stone-500 mt-0.5">穿白袍、斜披紅帶</div>
             </div>
             <button id="btn-hint" onclick="game.showHint()" class="w-full bg-amber-600 hover:bg-amber-500 text-white py-2 rounded-xl font-medium shadow transition active:scale-95 cursor-pointer text-xs">
-                💡 顯示提示紅圈
+                💡 解答
             </button>
         </div>
     </main>
@@ -180,10 +180,10 @@
     <div id="modal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-2">
         <div class="bg-white text-stone-800 border-2 border-amber-200 rounded-3xl p-6 max-w-md w-full text-center shadow-2xl flex flex-col items-center justify-center">
             <div id="modal-icon" class="text-5xl animate-bounce">🎉</div>
-            <h2 id="modal-title" class="text-xl font-bold text-amber-700">太神啦！成功找到耶穌！</h2>
+            <h2 id="modal-title" class="text-xl font-bold text-amber-700">恭喜！成功找到耶穌！</h2>
             <p id="modal-time" class="text-stone-600 text-sm font-medium my-2">你花費了 00:30 找到他！</p>
             <button onclick="game.nextLevel()" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-2.5 rounded-xl shadow-lg transition active:scale-95 cursor-pointer text-sm mt-1">
-                挑戰下一張圖
+                再找一次
             </button>
         </div>
     </div>
@@ -342,20 +342,22 @@
                 this.startTimer();
             }
 
-            generateDenseCrowd() {
+generateDenseCrowd() {
                 this.crowd = [];
                 
+                // 調整耶穌的隨機垂直範圍以適應 650 高度
                 this.jesusPos = {
                     x: 60 + Math.random() * 1180,
-                    y: 60 + Math.random() * 420,
+                    y: 60 + Math.random() * 520,
                     radius: 14
                 };
 
                 const { shirtColors, hairColors } = this.currentTheme;
 
-                for (let i = 0; i < 1100; i++) {
+                // 稍微增加人群數量以填滿更大的畫布空間
+                for (let i = 0; i < 1300; i++) {
                     let cx = 25 + Math.random() * 1250;
-                    let cy = 25 + Math.random() * 490;
+                    let cy = 25 + Math.random() * 600;
                     
                     if (Math.hypot(cx - this.jesusPos.x, cy - this.jesusPos.y) < 18) continue;
 
@@ -371,15 +373,17 @@
             }
 
             drawScene() {
+                // 將背景底色填滿高度改為 650
                 this.ctxGame.fillStyle = this.currentTheme.bgGround;
-                this.ctxGame.fillRect(0, 0, 1300, 540);
+                this.ctxGame.fillRect(0, 0, 1300, 650);
 
+                // 調整道路的貝茲曲線座標，使其完美向下延伸
                 this.ctxGame.fillStyle = this.currentTheme.bgRoad;
                 this.ctxGame.beginPath();
-                this.ctxGame.moveTo(0, 180);
-                this.ctxGame.bezierCurveTo(450, 60, 850, 420, 1300, 230);
-                this.ctxGame.lineTo(1300, 360);
-                this.ctxGame.bezierCurveTo(850, 540, 450, 180, 0, 310);
+                this.ctxGame.moveTo(0, 220);
+                this.ctxGame.bezierCurveTo(450, 80, 850, 520, 1300, 280);
+                this.ctxGame.lineTo(1300, 430);
+                this.ctxGame.bezierCurveTo(850, 630, 450, 220, 0, 370);
                 this.ctxGame.closePath();
                 this.ctxGame.fill();
 
@@ -568,7 +572,7 @@
                 const s = String(this.seconds % 60).padStart(2, '0');
                 const modalTime = document.getElementById('modal-time');
                 if (modalTime) {
-                    modalTime.innerText = `你在【${this.currentTheme.name}】關卡中，花費了 ${m}:${s} 找到耶穌！`;
+                    modalTime.innerText = `只花了 ${m}:${s} 就找到耶穌！`;
                 }
                 const modal = document.getElementById('modal');
                 if (modal) {
