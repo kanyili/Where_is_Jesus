@@ -342,7 +342,7 @@
                 this.startTimer();
             }
 
-generateDenseCrowd() {
+            generateDenseCrowd() {
                 this.crowd = [];
                 
                 // 調整耶穌的隨機垂直範圍以適應 650 高度
@@ -354,7 +354,7 @@ generateDenseCrowd() {
 
                 const { shirtColors, hairColors } = this.currentTheme;
 
-                // 稍微增加人群數量以填滿更大的畫布空間
+                // 稍微增加人群數量以填滿更大的畫布空間（全部改為 person）
                 for (let i = 0; i < 1300; i++) {
                     let cx = 25 + Math.random() * 1250;
                     let cy = 25 + Math.random() * 600;
@@ -364,7 +364,7 @@ generateDenseCrowd() {
                     this.crowd.push({
                         x: cx,
                         y: cy,
-                        type: Math.random() > 0.12 ? 'person' : 'object',
+                        type: 'person',
                         shirtColor: shirtColors[Math.floor(Math.random() * shirtColors.length)],
                         hairColor: hairColors[Math.floor(Math.random() * hairColors.length)],
                         variant: Math.floor(Math.random() * 3)
