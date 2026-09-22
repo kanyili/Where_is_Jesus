@@ -22,20 +22,16 @@
         /* 手機端專屬調整 */
         @media screen and (max-width: 900px) {
             body {
-                padding: 1px !important;
+                padding: 4px !important;
                 background-color: #fef3c7 !important;
                 height: 100vh !important;
                 overflow: hidden !important;
-                justify-content: flex-start !important;
             }
             .pc-header, .pc-sidebar {
                 display: none !important;
             }
             .mobile-header-bar {
-                display: flex !important;
-                margin-bottom: 1px !important;
-                width: 100vw !important;
-                padding: 2px 8px !important;
+                margin-bottom: 2px !important;
             }
             .mobile-game-container {
                 width: 100vw !important;
@@ -49,23 +45,13 @@
                 align-items: center !important;
                 justify-content: center !important;
             }
-            .canvas-container {
-                padding: 0 !important;
-                width: 100vw !important;
-                display: flex !important;
-                justify-content: center !important;
-                align-items: center !important;
-                background: transparent !important;
-                border: none !important;
-            }
-            /* 調整手機端最大高度，確保控制面板與地圖均能完整顯示 */
             #canvas-game {
-                width: 100vw !important;
+                width: auto !important;
                 height: auto !important;
-                max-width: 100vw !important;
-                max-height: 58vh !important;
+                max-width: 98vw !important;
+                max-height: 62vh !important;
                 object-fit: contain !important;
-                border-radius: 4px !important;
+                border-radius: 8px !important;
             }
             /* 手機橫向彈窗極致緊湊與自適應捲動優化 */
             #modal > div, #mobile-intro-modal > div {
@@ -102,7 +88,8 @@
         }
     </style>
 </head>
-<body class="bg-amber-50 text-stone-800 h-screen flex flex-col items-center justify-start gap-1 p-1 select-none overflow-hidden relative">
+<!-- 將 justify-between 改為 justify-start，並透過 gap-3 讓上方資訊框與主遊戲畫面緊密且整齊地往上靠 -->
+<body class="bg-amber-50 text-stone-800 h-screen flex flex-col items-center justify-start gap-3 p-3 select-none overflow-hidden relative">
 
     <!-- 手機直向警告遮罩 -->
     <div id="orientation-warning" class="fixed inset-0 bg-stone-900/95 z-50 flex-col items-center justify-center p-6 text-center space-y-4">
@@ -148,18 +135,18 @@
         </div>
     </header>
 
-    <!-- 手機版專屬上方資訊與控制列 (強制顯示於最上方) -->
-    <div class="hidden mobile-header-bar w-full items-center justify-between bg-white/95 backdrop-blur-md px-3 py-1 rounded-lg shadow-sm border border-amber-200 shrink-0 z-10">
+    <!-- 手機版專屬上方資訊與控制列 -->
+    <div class="hidden max-[900px]:flex mobile-header-bar w-full max-w-[98vw] items-center justify-between bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg shadow-sm border border-amber-200 shrink-0">
         <div class="flex items-center space-x-1.5 text-xs font-medium text-stone-700">
             <span id="mobile-level-desc" class="font-bold text-amber-800 truncate max-w-[120px]">春意草原</span>
             <span class="text-stone-400">|</span>
             <span>時間: <span id="mobile-timer-display" class="text-emerald-700 font-bold">00:00</span></span>
         </div>
-        <div class="flex items-center space-x-1.5">
-            <button onclick="game.restartLevel()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded font-medium text-xs active:scale-95 cursor-pointer shadow">
+        <div class="flex items-center space-x-1">
+            <button onclick="game.restartLevel()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-0.5 rounded font-medium text-xs active:scale-95 cursor-pointer shadow">
                 🔄 新局
             </button>
-            <button onclick="game.showHint()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1 rounded font-medium text-xs active:scale-95 cursor-pointer shadow">
+            <button onclick="game.showHint()" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-0.5 rounded font-medium text-xs active:scale-95 cursor-pointer shadow">
                 💡 解答
             </button>
         </div>
@@ -169,7 +156,7 @@
     <main class="w-full max-w-7xl flex flex-row gap-4 items-center justify-center relative shrink mobile-game-container">
         
         <!-- 遊戲主畫面 -->
-        <div class="relative bg-white/60 p-1 rounded-xl shadow-md border-2 border-amber-200 canvas-container">
+        <div class="relative bg-white/60 p-1.5 rounded-xl shadow-md border-2 border-amber-200 canvas-container">
             <canvas id="canvas-game" width="1300" height="650" class="rounded-lg block bg-amber-50/85 w-auto h-auto object-contain"></canvas>
         </div>
 
@@ -267,36 +254,10 @@
             initEvents() {
                 const handleInput = (clientX, clientY) => {
                     const rect = this.canvasGame.getBoundingClientRect();
-                    
-                    const displayWidth = rect.width;
-                    const displayHeight = rect.height;
-                    
-                    const targetAspect = this.canvasGame.width / this.canvasGame.height;
-                    const currentAspect = displayWidth / displayHeight;
-
-                    let renderWidth = displayWidth;
-                    let renderHeight = displayHeight;
-                    let offsetX = 0;
-                    let offsetY = 0;
-
-                    if (currentAspect > targetAspect) {
-                        renderWidth = displayHeight * targetAspect;
-                        offsetX = (displayWidth - renderWidth) / 2;
-                    } else {
-                        renderHeight = displayWidth / targetAspect;
-                        offsetY = (displayHeight - renderHeight) / 2;
-                    }
-
-                    const clickX = clientX - rect.left;
-                    const clickY = clientY - rect.top;
-
-                    if (clickX < offsetX || clickX > offsetX + renderWidth || 
-                        clickY < offsetY || clickY > offsetY + renderHeight) {
-                        return;
-                    }
-
-                    const x = ((clickX - offsetX) / renderWidth) * this.canvasGame.width;
-                    const y = ((clickY - offsetY) / renderHeight) * this.canvasGame.height;
+                    const scaleX = this.canvasGame.width / rect.width;
+                    const scaleY = this.canvasGame.height / rect.height;
+                    const x = (clientX - rect.left) * scaleX;
+                    const y = (clientY - rect.top) * scaleY;
 
                     if (this.isLocked) return;
                     this.handleClick(x, y);
@@ -381,9 +342,10 @@
                 this.startTimer();
             }
 
-            generateDenseCrowd() {
+generateDenseCrowd() {
                 this.crowd = [];
                 
+                // 調整耶穌的隨機垂直範圍以適應 650 高度
                 this.jesusPos = {
                     x: 60 + Math.random() * 1180,
                     y: 60 + Math.random() * 520,
@@ -392,6 +354,7 @@
 
                 const { shirtColors, hairColors } = this.currentTheme;
 
+                // 稍微增加人群數量以填滿更大的畫布空間
                 for (let i = 0; i < 1300; i++) {
                     let cx = 25 + Math.random() * 1250;
                     let cy = 25 + Math.random() * 600;
@@ -410,9 +373,11 @@
             }
 
             drawScene() {
+                // 將背景底色填滿高度改為 650
                 this.ctxGame.fillStyle = this.currentTheme.bgGround;
                 this.ctxGame.fillRect(0, 0, 1300, 650);
 
+                // 調整道路的貝茲曲線座標，使其完美向下延伸
                 this.ctxGame.fillStyle = this.currentTheme.bgRoad;
                 this.ctxGame.beginPath();
                 this.ctxGame.moveTo(0, 220);
@@ -424,7 +389,7 @@
 
                 this.crowd.forEach(item => {
                     if (item.type === 'person') {
-                        this.drawTinyPerson(this.ctxGame, item.x, item.y, item.shirtColor, item.hairColor, item.variant);
+                        this.drawTinyPerson(this.ctxGame, item.x, item.y, item.shirtColor, item.hairColor);
                     } else {
                         this.drawTinyObject(this.ctxGame, item.x, item.y);
                     }
@@ -449,11 +414,11 @@
                 this.drawJesus(this.ctxMobileTarget, 30, 32, 1.1);
             }
 
-            drawTinyPerson(ctx, x, y, shirtColor, hairColor, variant = 0) {
+            drawTinyPerson(ctx, x, y, shirtColor, hairColor) {
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.strokeStyle = "#292524";
-                ctx.lineWidth = 0.5;
+                ctx.lineWidth = 0.4;
 
                 ctx.fillStyle = hairColor;
                 ctx.beginPath();
@@ -471,20 +436,6 @@
                 ctx.fillRect(-4.5, -2, 9, 11);
                 ctx.strokeRect(-4.5, -2, 9, 11);
 
-                if (variant === 1) {
-                    ctx.beginPath();
-                    ctx.moveTo(4.5, -1);
-                    ctx.lineTo(8, -6);
-                    ctx.stroke();
-                } else if (variant === 2) {
-                    ctx.beginPath();
-                    ctx.moveTo(-4.5, -1);
-                    ctx.lineTo(-8, -6);
-                    ctx.moveTo(4.5, -1);
-                    ctx.lineTo(8, -6);
-                    ctx.stroke();
-                }
-
                 ctx.restore();
             }
 
@@ -493,7 +444,7 @@
                 ctx.translate(x, y);
                 ctx.fillStyle = this.currentTheme.treeColor;
                 ctx.strokeStyle = "#292524";
-                ctx.lineWidth = 0.5;
+                ctx.lineWidth = 0.4;
                 ctx.beginPath();
                 ctx.arc(0, 0, 5, 0, Math.PI * 2);
                 ctx.fill();
@@ -506,7 +457,7 @@
                 ctx.translate(x, y);
                 ctx.scale(scale, scale);
                 ctx.strokeStyle = "#292524";
-                ctx.lineWidth = 0.5;
+                ctx.lineWidth = 1.1;
 
                 ctx.fillStyle = "#451a03";
                 ctx.beginPath();
