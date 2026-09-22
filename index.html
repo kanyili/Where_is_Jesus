@@ -19,16 +19,19 @@
                 display: flex !important;
             }
         }
-        /* 手機端排版：針對橫向短螢幕優化，確保畫面完全塞入視窗內 */
+        /* 手機端專屬調整 */
         @media screen and (max-width: 900px) {
             body {
-                padding: 2px !important;
+                padding: 4px !important;
                 background-color: #fef3c7 !important;
                 height: 100vh !important;
                 overflow: hidden !important;
             }
             .pc-header, .pc-sidebar {
                 display: none !important;
+            }
+            .mobile-header-bar {
+                margin-bottom: 2px !important;
             }
             .mobile-game-container {
                 width: 100vw !important;
@@ -46,7 +49,7 @@
                 width: auto !important;
                 height: auto !important;
                 max-width: 98vw !important;
-                max-height: 56vh !important;
+                max-height: 62vh !important;
                 object-fit: contain !important;
                 border-radius: 8px !important;
             }
@@ -85,7 +88,8 @@
         }
     </style>
 </head>
-<body class="bg-amber-50 text-stone-800 h-screen flex flex-col items-center justify-between p-2 select-none overflow-hidden relative">
+<!-- 將 justify-between 改為 justify-start，並透過 gap-3 讓上方資訊框與主遊戲畫面緊密且整齊地往上靠 -->
+<body class="bg-amber-50 text-stone-800 h-screen flex flex-col items-center justify-start gap-3 p-3 select-none overflow-hidden relative">
 
     <!-- 手機直向警告遮罩 -->
     <div id="orientation-warning" class="fixed inset-0 bg-stone-900/95 z-50 flex-col items-center justify-center p-6 text-center space-y-4">
@@ -132,7 +136,7 @@
     </header>
 
     <!-- 手機版專屬上方資訊與控制列 -->
-    <div class="hidden max-[900px]:flex w-full max-w-[98vw] items-center justify-between bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg shadow-sm border border-amber-200 shrink-0 my-0.5">
+    <div class="hidden max-[900px]:flex mobile-header-bar w-full max-w-[98vw] items-center justify-between bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg shadow-sm border border-amber-200 shrink-0">
         <div class="flex items-center space-x-1.5 text-xs font-medium text-stone-700">
             <span id="mobile-level-desc" class="font-bold text-amber-800 truncate max-w-[120px]">春意草原</span>
             <span class="text-stone-400">|</span>
@@ -149,7 +153,7 @@
     </div>
 
     <!-- 主遊戲區 -->
-    <main class="w-full max-w-7xl flex flex-row gap-4 items-center justify-center relative my-auto shrink mobile-game-container">
+    <main class="w-full max-w-7xl flex flex-row gap-4 items-center justify-center relative shrink mobile-game-container">
         
         <!-- 遊戲主畫面 -->
         <div class="relative bg-white/60 p-1.5 rounded-xl shadow-md border-2 border-amber-200 canvas-container">
