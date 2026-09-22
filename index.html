@@ -88,7 +88,6 @@
         }
     </style>
 </head>
-<!-- 將 justify-between 改為 justify-start，並透過 gap-3 讓上方資訊框與主遊戲畫面緊密且整齊地往上靠 -->
 <body class="bg-amber-50 text-stone-800 h-screen flex flex-col items-center justify-start gap-3 p-3 select-none overflow-hidden relative">
 
     <!-- 手機直向警告遮罩 -->
@@ -342,10 +341,9 @@
                 this.startTimer();
             }
 
-generateDenseCrowd() {
+            generateDenseCrowd() {
                 this.crowd = [];
                 
-                // 調整耶穌的隨機垂直範圍以適應 650 高度
                 this.jesusPos = {
                     x: 60 + Math.random() * 1180,
                     y: 60 + Math.random() * 520,
@@ -354,7 +352,6 @@ generateDenseCrowd() {
 
                 const { shirtColors, hairColors } = this.currentTheme;
 
-                // 稍微增加人群數量以填滿更大的畫布空間
                 for (let i = 0; i < 1300; i++) {
                     let cx = 25 + Math.random() * 1250;
                     let cy = 25 + Math.random() * 600;
@@ -367,17 +364,15 @@ generateDenseCrowd() {
                         type: Math.random() > 0.12 ? 'person' : 'object',
                         shirtColor: shirtColors[Math.floor(Math.random() * shirtColors.length)],
                         hairColor: hairColors[Math.floor(Math.random() * hairColors.length)],
-                        variant: Math.floor(Math.random() * 3)
+                        variant: Math.floor(Math.random() * 3) // 0: 標準, 1: 單手舉高, 2: 雙手舉高
                     });
                 }
             }
 
             drawScene() {
-                // 將背景底色填滿高度改為 650
                 this.ctxGame.fillStyle = this.currentTheme.bgGround;
                 this.ctxGame.fillRect(0, 0, 1300, 650);
 
-                // 調整道路的貝茲曲線座標，使其完美向下延伸
                 this.ctxGame.fillStyle = this.currentTheme.bgRoad;
                 this.ctxGame.beginPath();
                 this.ctxGame.moveTo(0, 220);
@@ -389,7 +384,7 @@ generateDenseCrowd() {
 
                 this.crowd.forEach(item => {
                     if (item.type === 'person') {
-                        this.drawTinyPerson(this.ctxGame, item.x, item.y, item.shirtColor, item.hairColor);
+                        this.drawTinyPerson(this.ctxGame, item.x, item.y, item.shirtColor, item.hairColor, item.variant);
                     } else {
                         this.drawTinyObject(this.ctxGame, item.x, item.y);
                     }
@@ -414,27 +409,47 @@ generateDenseCrowd() {
                 this.drawJesus(this.ctxMobileTarget, 30, 32, 1.1);
             }
 
-            drawTinyPerson(ctx, x, y, shirtColor, hairColor) {
+            drawTinyPerson(ctx, x, y, shirtColor, hairColor, variant = 0) {
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.strokeStyle = "#292524";
-                ctx.lineWidth = 0.4;
+                ctx.lineWidth = 0.5; // 設定線條粗細為 0.5
 
+                // 頭髮
                 ctx.fillStyle = hairColor;
                 ctx.beginPath();
                 ctx.arc(0, -7, 4.5, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.stroke();
 
+                // 臉部
                 ctx.fillStyle = "#fed7aa";
                 ctx.beginPath();
                 ctx.arc(0, -6, 3.5, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.stroke();
 
+                // 身體
                 ctx.fillStyle = shirtColor;
                 ctx.fillRect(-4.5, -2, 9, 11);
                 ctx.strokeRect(-4.5, -2, 9, 11);
+
+                // 豐富的手部與肢體動作
+                if (variant === 1) {
+                    // 單手舉高
+                    ctx.beginPath();
+                    ctx.moveTo(4.5, -1);
+                    ctx.lineTo(8, -6);
+                    ctx.stroke();
+                } else if (variant === 2) {
+                    // 雙手舉高
+                    ctx.beginPath();
+                    ctx.moveTo(-4.5, -1);
+                    ctx.lineTo(-8, -6);
+                    ctx.moveTo(4.5, -1);
+                    ctx.lineTo(8, -6);
+                    ctx.stroke();
+                }
 
                 ctx.restore();
             }
@@ -444,7 +459,7 @@ generateDenseCrowd() {
                 ctx.translate(x, y);
                 ctx.fillStyle = this.currentTheme.treeColor;
                 ctx.strokeStyle = "#292524";
-                ctx.lineWidth = 0.4;
+                ctx.lineWidth = 0.5; // 線條粗細為 0.5
                 ctx.beginPath();
                 ctx.arc(0, 0, 5, 0, Math.PI * 2);
                 ctx.fill();
@@ -457,7 +472,7 @@ generateDenseCrowd() {
                 ctx.translate(x, y);
                 ctx.scale(scale, scale);
                 ctx.strokeStyle = "#292524";
-                ctx.lineWidth = 1.1;
+                ctx.lineWidth = 0.5; // 線條粗細為 0.5
 
                 ctx.fillStyle = "#451a03";
                 ctx.beginPath();
