@@ -180,7 +180,7 @@
     <div id="modal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-2">
         <div class="bg-white text-stone-800 border-2 border-amber-200 rounded-3xl p-6 max-w-md w-full text-center shadow-2xl flex flex-col items-center justify-center">
             <div id="modal-icon" class="text-5xl animate-bounce">🎉</div>
-            <h2 id="modal-title" class="text-xl font-bold text-amber-700">恭喜過關</h2>
+            <h2 id="modal-title" class="text-xl font-bold text-amber-700">恭喜！成功找到耶穌！</h2>
             <p id="modal-time" class="text-stone-600 text-sm font-medium my-2">你花費了 00:30 找到他！</p>
             <button onclick="game.nextLevel()" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-2.5 rounded-xl shadow-lg transition active:scale-95 cursor-pointer text-sm mt-1">
                 再找一次
@@ -418,7 +418,7 @@ generateDenseCrowd() {
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.strokeStyle = "#292524";
-                ctx.lineWidth = 0.4;
+                ctx.lineWidth = 1.0;
 
                 ctx.fillStyle = hairColor;
                 ctx.beginPath();
@@ -444,7 +444,7 @@ generateDenseCrowd() {
                 ctx.translate(x, y);
                 ctx.fillStyle = this.currentTheme.treeColor;
                 ctx.strokeStyle = "#292524";
-                ctx.lineWidth = 0.4;
+                ctx.lineWidth = 1.0;
                 ctx.beginPath();
                 ctx.arc(0, 0, 5, 0, Math.PI * 2);
                 ctx.fill();
@@ -572,7 +572,7 @@ generateDenseCrowd() {
                 const s = String(this.seconds % 60).padStart(2, '0');
                 const modalTime = document.getElementById('modal-time');
                 if (modalTime) {
-                    modalTime.innerText = `只花了 ${m}分${s}秒 就找到耶穌！`;
+                    modalTime.innerText = `只花了 ${m}:${s} 就找到耶穌！`;
                 }
                 const modal = document.getElementById('modal');
                 if (modal) {
